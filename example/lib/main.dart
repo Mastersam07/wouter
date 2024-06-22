@@ -1,8 +1,23 @@
+import 'package:example/navigation/route_config.dart';
+import 'package:example/navigation/route_info_parser.dart';
 import 'package:flutter/material.dart';
 
-import 'navigation/router.dart';
+import 'navigation/router_delegate.dart';
 
-const bool isloggedIn = false;
+final routeDelegate = SimpleRouterDelegate(
+  routes: [
+    RouteConfig(path: '/', builder: (context, _, __) => const HomeScreen()),
+    RouteConfig(
+        path: '/about', builder: (context, _, __) => const AboutScreen()),
+    RouteConfig(
+      path: '/search',
+      builder: (context, _, queryParams) => SearchScreen(
+        queryParams: queryParams,
+      ),
+    ),
+  ],
+);
+final routeInfoParser = SimpleRouteInformationParser();
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +31,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  int? selectedProduct;
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
@@ -25,77 +39,69 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      routerDelegate: routerDelegate,
-      routeInformationParser: routeInformationParser,
-      // home: Navigator(
-      //   onPopPage: (route, result) {
-      //     final page = route.settings as MaterialPage;
-      //     if (page.key == ProductView.valueKey) {
-      //       selectedProduct = null;
-      //     }
-      //     return route.didPop(result);
-      //   },
-      //   pages: [
-      //     MaterialPage(
-      //       child: ProductListingView(
-      //         didSelectProduct: selectProduct,
-      //       ),
-      //     ),
-      //     if (selectedProduct != null)
-      //       MaterialPage(
-      //         key: ProductView.valueKey,
-      //         child: ProductView(productIndex: selectedProduct!),
-      //       ),
-      //   ],
-      // ),
+      routeInformationParser: routeInfoParser,
+      routerDelegate: routeDelegate,
     );
-  }
-
-  selectProduct(product) {
-    setState(() {
-      selectedProduct = product;
-    });
   }
 }
 
-class ProductListingView extends StatelessWidget {
-  const ProductListingView({super.key, this.didSelectProduct});
-
-  final Function(int product)? didSelectProduct;
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        title: const Text('Products'),
-      ),
-      body: ListView.builder(
-        itemCount: 30,
-        itemBuilder: (_, int index) => ListTile(
-          onTap: () => didSelectProduct?.call(index),
-          title: Text('Product $index'),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () => routeDelegate.navigateTo('/about'),
+              child: const Text('Go to about'),
+            ),
+            ElevatedButton(
+              onPressed: () => routeDelegate.navigateTo('/search'),
+              child: const Text('Go to search'),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class ProductView extends StatelessWidget {
-  const ProductView({super.key, required this.productIndex});
+class AboutScreen extends StatelessWidget {
+  const AboutScreen({super.key});
 
-  static const valueKey = ValueKey('ProductView');
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: Text('About'),
+      ),
+    );
+  }
+}
 
-  final int productIndex;
+class SearchScreen extends StatelessWidget {
+  const SearchScreen({super.key, required this.queryParams});
+
+  final Map<String, String> queryParams;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Product details'),
-      ),
       body: Center(
-        child: Text('Product $productIndex'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Search'),
+            if (queryParams.isNotEmpty)
+              Text(
+                'Query: ${queryParams.entries.map((e) => '${e.key}=${e.value}').join(", ")}',
+              ),
+          ],
+        ),
       ),
     );
   }

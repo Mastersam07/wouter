@@ -1,24 +1,15 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class RouteConfig {
   final String path;
   final Widget Function(BuildContext, Map<String, String>, Map<String, String>)
       builder;
-  final bool Function()? guard;
-  final List<RouteConfig>? nestedRoutes;
-  final String? Function(Uri)? redirect;
 
-  RouteConfig({
-    required this.path,
-    required this.builder,
-    this.guard,
-    this.nestedRoutes,
-    this.redirect,
-  });
+  RouteConfig({required this.path, required this.builder});
 
   bool hasMatch(String path) {
-    final uri = Uri.parse(path);
     final routeUri = Uri.parse(this.path);
+    final uri = Uri.parse(path);
 
     if (routeUri.pathSegments.length != uri.pathSegments.length) {
       return false;
@@ -36,13 +27,12 @@ class RouteConfig {
         return false;
       }
     }
-
     return true;
   }
 
   Map<String, String> extractParams(String path) {
-    final uri = Uri.parse(path);
     final routeUri = Uri.parse(this.path);
+    final uri = Uri.parse(path);
     final params = <String, String>{};
 
     for (int i = 0; i < routeUri.pathSegments.length; i++) {
